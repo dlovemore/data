@@ -45,7 +45,7 @@ def compose(f,g):
 # >>> f([10,20,30])
 # [0, 1, 2]
 # >>> f
-# <function compose.<locals>.compose at 0xb662d390>
+# <function compose.<locals>.compose at 0xb6614390>
 
 class Renumberer:
     def __init__(self,start=1):
@@ -115,7 +115,7 @@ def dfs(y,f,g=None):
             if g: yield g(x)
 # >>> R=RefMaker(id)
 # >>> 'x'@R
-# 3061135968@R
+# 3061029472@R
 # >>> 'x' in R
 # True
 # >>> force([1,2,3])
@@ -130,9 +130,9 @@ def dfs(y,f,g=None):
 # >>> force(dfs([1,2,3,4,2],I))
 # [[1, 2, 3, 4, 2], 1, 2, 3, 4]
 # >>> 'x'@R
-# 3061135968@R
+# 3061029472@R
 # >>> R.refs
-# {3061135968: 3061135968@R, 4407700: 4407700@R}
+# {3061029472: 3061029472@R, 4407700: 4407700@R}
 # >>> 
 
 
@@ -165,18 +165,27 @@ def saveflat(x):
     return list(dfs(x,pr))
 
 def save(x):
-    seen=set()
-    many=set()
-    def mr(x):
-        if id(x) in seen:
-            many.add(id(x))
+    R=RefMaker(id)
+    S=RefMaker(id)
+    def note(x):
+        x@R@x
+    def many(x):
+        x@S
+    force(dfs(x,note,many))
+    def prref(x):
+        return repr(x@R)
+    def pr(x):
+        s=prref(x)+'@' if id in S else ''
+        if haschildren(x):
+            s+=f'{type(x).__name__}(['
+            rf = pr if immutable(x) else prref
+            s+=','.join(map(rf,children(x)))
+            s+='])'
         else:
-            seen.add(id(x))
-            for a in children(x):
-                mr(a)
-    mr(x)
-    uids=dict() # ref id->ids
-    uid=1
+            s+=repr(x)
+        return s
+    return list(dfs(x,pr))
+    uid=None
     def pr(x):
         nonlocal uid
         s=''
@@ -288,7 +297,7 @@ def load(s):
 # >>> load(_)
 # ([[1, -2, 3], [4, 5, 6]], [[1, -2, 3], [4, 5, 6]])
 # >>> print(saveflat(_))
-# ['3058928416@R@tuple([3058992152@R@list([3058991992@R,3058992272@R]),3058992152@R@list([3058991992@R,3058992272@R])])', '3058992152@R@list([3058991992@R,3058992272@R])', '3058991992@R@list([4407700@R,4407652@R,4407732@R])', '3058992272@R@list([4407748@R,4407764@R,4407780@R])', '4407700@R@1', '4407652@R@-2', '4407732@R@3', '4407748@R@4', '4407764@R@5', '4407780@R@6']
+# ['3058829952@R@tuple([3058885536@R@list([3058885376@R,3058885656@R]),3058885536@R@list([3058885376@R,3058885656@R])])', '3058885536@R@list([3058885376@R,3058885656@R])', '3058885376@R@list([4407700@R,4407652@R,4407732@R])', '3058885656@R@list([4407748@R,4407764@R,4407780@R])', '4407700@R@1', '4407652@R@-2', '4407732@R@3', '4407748@R@4', '4407764@R@5', '4407780@R@6']
 # >>> 
 # >>> 
 # >>> dict([(1,2)])
