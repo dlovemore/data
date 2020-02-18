@@ -1,4 +1,5 @@
 var JAHson;
+print=p=console.log;
 
 {
   function rebuild(y) { return y }
@@ -24,6 +25,7 @@ var JAHson;
     return {};
   }
   function save(x, links, linkix) {
+    var k;
     if (!linkix) for(k in links) linkix[links[k]]=k;
     function dfs(y, seen, r) {
       if (!(y in seen)) {
@@ -71,6 +73,138 @@ var JAHson;
     nu:nu, atom:atom, isarray:isarray
   }
 }
+/* {
+  function save(x, links, linkix) {
+    def addlink(x) {
+      var r=linkix[x];
+      if (r==undefined) {
+        return linkix[x]=links.push(x)-1;
+      } else if (r.indexOf) {
+        var i,j; j=r.indexOf(x)
+        if (j<0) {
+          j=links.push(x)-1
+          r.push(j);
+        }
+        return j
+      } else {
+        if(links[r]==x) return r;
+        linkix[r]=[links[r],x];
+        assert.ok(linkix[r].indexOf)
+        return links.push(x)-1
+      }
+    }
+    def addix(k,x) {
+      var r=linkix[x]
+      if (k==r) return;
+      if (r==undefined) {
+        linkix[x]=k
+      } else if (r.indexOf) {
+        r.push
+
+        :x
+
+
+
+      
+
+    if (!linkix) {
+      linkix={}
+      var k; for(k in links) {
+        var v=links[k];
+        var r=linkix[v]
+        if (r!=undefined) {
+          if (r.indexOf) {
+            r.push(k);
+          } else {
+            
+
+          
+      if (k in linkix) {
+        
+      if (k.length) {
+        var i; for(i in k)
+*/
+{
+  function Dict() {
+    this.ix={}
+    this.keys=[]
+    this.vals=[]
+  }
+
+  Dict.prototype.ij=function(k) {
+    var i=this.ix[k], j=0;
+    if (i==undefined) {
+      i=this.ix[k]=this.keys.push([k])-1
+      j=0;
+    } else {
+      var ks=this.keys[i]
+      j=ks.indexOf(k)
+      if (j<0) {
+        j=ks.push(k)-1
+      }
+    }
+    return [i,j]
+  }
+  Dict.prototype.set=function(k,v) {
+    var ij = this.ij(k)
+    var i = ij[0], j=ij[1];
+    var vi = this.vals[i]
+    if(vi==undefined) vi=this.vals[i]=[]
+    this.vals[i][j]=v
+  }
+  Dict.prototype.get=function(k) {
+    var ij = this.ij(k)
+    var i = ij[0], j=ij[1];
+    return this.vals[i] && this.vals[i][j]
+  }
+
+  function test() {
+    var d=new Dict()
+    var x0=0,x1=2,x2='a2',x3=[],x4=[],x5={a:'a'},x6={a:'b'},x7={a:x7},x8={a:x6}
+    var assert= { equal: function (x,y) { console.assert(x==y); } }
+    d.set(x0,0)
+    d.set(x1,1)
+    d.set(x2,2)
+    d.set(x3,3)
+    d.set(x4,4)
+    d.set(x5,5)
+    d.set(x6,6)
+    d.set(x7,7)
+    d.set(x8,8)
+    assert.equal(d.get(x0),0)
+    assert.equal(d.get(x1),1)
+    assert.equal(d.get(x2),2)
+    assert.equal(d.get(x3),3)
+    assert.equal(d.get(x4),4)
+    assert.equal(d.get(x5),5)
+    assert.equal(d.get(x6),6)
+    assert.equal(d.get(x7),7)
+    assert.equal(d.get(x8),8)
+  }
+  test()
+}
+{
+  function save(x, links, linkix) {
+    if (!linkix) {
+      linkix=new Dict()
+      var k; for(k in links) {
+        v=links[k]
+        linkix.set(v,k)
+      }
+    }
+  }
+}
+
+      
+      
+        
+
+      
+
+
+
+
+  
 
 print=p=console.log;
 o1={a:[1,2,3], b:'12xx', c: {ref:'b'}}
