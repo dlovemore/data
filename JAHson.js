@@ -73,57 +73,6 @@ print=p=console.log;
     nu:nu, atom:atom, isarray:isarray
   }
 }
-/* {
-  function save(x, links, linkix) {
-    def addlink(x) {
-      var r=linkix[x];
-      if (r==undefined) {
-        return linkix[x]=links.push(x)-1;
-      } else if (r.indexOf) {
-        var i,j; j=r.indexOf(x)
-        if (j<0) {
-          j=links.push(x)-1
-          r.push(j);
-        }
-        return j
-      } else {
-        if(links[r]==x) return r;
-        linkix[r]=[links[r],x];
-        assert.ok(linkix[r].indexOf)
-        return links.push(x)-1
-      }
-    }
-    def addix(k,x) {
-      var r=linkix[x]
-      if (k==r) return;
-      if (r==undefined) {
-        linkix[x]=k
-      } else if (r.indexOf) {
-        r.push
-
-        :x
-
-
-
-      
-
-    if (!linkix) {
-      linkix={}
-      var k; for(k in links) {
-        var v=links[k];
-        var r=linkix[v]
-        if (r!=undefined) {
-          if (r.indexOf) {
-            r.push(k);
-          } else {
-            
-
-          
-      if (k in linkix) {
-        
-      if (k.length) {
-        var i; for(i in k)
-*/
 {
   function Dict() {
     this.ix={}
@@ -192,14 +141,27 @@ print=p=console.log;
         linkix.set(v,k)
       }
     }
+    var id=1
+    function dfs(y,seen,many) {
+      if (!seen.has(y)) {
+        var nuy;
+        seen.set(y,nuy=this.nu(y))
+        for(x in this.children(y)) {
+          nuy[x]=dfs(y[x],seen,many)
+        }
+        return nuy
+      }
+      var r={'@': id++}
+      many.set(r,seen[y])
+      return {'@': seen[y]}
+    }
+    seen=new Dict()
+    many=new Dict()
+    dfs(x,seen,many)
+    
+    return dfs(x, linkix)
   }
 }
-
-      
-      
-        
-
-      
 
 
 
