@@ -145,25 +145,27 @@ print=p=console.log;
       linkix=new Dict()
       var k; for(k in links) { v=links[k]; linkix.set(v,k); }
     }
-    var id=1
-    function dfs(y,seen,many) {
+    var id=0
+    var mid=0
+    function dfs(y,seen,many,refs) {
       if (!seen.has(y)) {
         var nuy;
         seen.set(y,nuy=this.nu(y))
         for(x in this.children(y)) {
           nuy[x]=dfs(y[x],seen,many)
         }
+        var r=id++
+        seen.set(y,r)
         return nuy
       }
-      var r={'@': id++}
-      many.set(r,seen[y])
-      return {'@': seen[y]}
+      var r=mid++
+      many.set(y,r)
+      return {'@': refs.get(y)}
     }
     seen=new Dict()
     many=new Dict()
-    dfs(x,seen,many)
-    
-    return dfs(x, linkix)
+    return dfs(x,seen,many,seen)
+    return dfs(x,seen,many,many)
   }
 }
 
