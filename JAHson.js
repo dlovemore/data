@@ -131,55 +131,62 @@ print=p=console.log;
     this.vals=[]
   }
 
-  Dict.prototype.ij=function(k) {
-    var i=this.ix[k], j=0;
+  Dict.prototype.set=function(k,v) {
+    var i=this.ix[k];
     if (i==undefined) {
       i=this.ix[k]=this.keys.push([k])-1
-      j=0;
+      this.vals[i]=[v]
+      return
     } else {
       var ks=this.keys[i]
-      j=ks.indexOf(k)
+      var j=ks.indexOf(k)
       if (j<0) {
         j=ks.push(k)-1
       }
+      this.vals[i][j]=v
     }
-    return [i,j]
   }
-  Dict.prototype.set=function(k,v) {
-    var ij = this.ij(k)
-    var i = ij[0], j=ij[1];
-    var vi = this.vals[i]
-    if(vi==undefined) vi=this.vals[i]=[]
-    this.vals[i][j]=v
+  Dict.prototype.has=function(k) {
+    var i=this.ix[k];
+    return i!=undefined && !(this.keys[i].indexOf(k)<0)
   }
   Dict.prototype.get=function(k) {
-    var ij = this.ij(k)
-    var i = ij[0], j=ij[1];
-    return this.vals[i] && this.vals[i][j]
+    var i=this.ix[k], j=0;
+    if (i!=undefined) {
+      var j=this.keys[i].indexOf(k);
+      if (!(j<0)) {
+        return this.vals[i][j]
+      }
+    }
   }
 
   function test() {
     var d=new Dict()
     var x0=0,x1=2,x2='a2',x3=[],x4=[],x5={a:'a'},x6={a:'b'},x7={a:x7},x8={a:x6}
-    var assert= { equal: function (x,y) { console.assert(x==y); } }
+    var assert= console.assert;
     d.set(x0,0)
+    assert(d.has(x0))
+    assert(!d.has(x1))
     d.set(x1,1)
     d.set(x2,2)
+    assert(!d.has(x3))
     d.set(x3,3)
+    assert(d.has(x3))
+    assert(!d.has(x4))
     d.set(x4,4)
     d.set(x5,5)
     d.set(x6,6)
     d.set(x7,7)
     d.set(x8,8)
-    assert.equal(d.get(x0),0)
-    assert.equal(d.get(x1),1)
-    assert.equal(d.get(x2),2)
-    assert.equal(d.get(x3),3)
-    assert.equal(d.get(x4),4)
-    assert.equal(d.get(x5),5)
-    assert.equal(d.get(x6),6)
-    assert.equal(d.get(x7),7)
-    assert.equal(d.get(x8),8)
+    assert(d.get(x0)==0)
+    assert(d.get(x1)==1)
+    assert(d.get(x2)==2)
+    assert(d.get(x3)==3)
+    assert(d.get(x4)==4)
+    assert(d.get(x5)==5)
+    assert(d.get(x6)==6)
+    assert(d.get(x7)==7)
+    assert(d.get(x8)==8)
   }
   test()
 }
@@ -187,11 +194,9 @@ print=p=console.log;
   function save(x, links, linkix) {
     if (!linkix) {
       linkix=new Dict()
-      var k; for(k in links) {
-        v=links[k]
-        linkix.set(v,k)
-      }
+      var k; for(k in links) { v=links[k]; linkix.set(v,k); }
     }
+    /* ... */
   }
 }
 
