@@ -76,38 +76,46 @@ print=p=console.log;
 {
   function Dict() {
     this.ix={}
-    this.keys=[]
-    this.vals=[]
+    this.ks=[]
+    this.vs=[]
   }
 
   Dict.prototype.set=function(k,v) {
     var i=this.ix[k];
     if (i==undefined) {
-      i=this.ix[k]=this.keys.push([k])-1
-      this.vals[i]=[v]
+      i=this.ix[k]=this.ks.push([k])-1
+      this.vs[i]=[v]
       return
     } else {
-      var ks=this.keys[i]
+      var ks=this.ks[i]
       var j=ks.indexOf(k)
       if (j<0) {
         j=ks.push(k)-1
       }
-      this.vals[i][j]=v
+      this.vs[i][j]=v
     }
   }
   Dict.prototype.has=function(k) {
     var i=this.ix[k];
-    return i!=undefined && !(this.keys[i].indexOf(k)<0)
+    return i!=undefined && !(this.ks[i].indexOf(k)<0)
   }
   Dict.prototype.get=function(k) {
     var i=this.ix[k], j=0;
     if (i!=undefined) {
-      var j=this.keys[i].indexOf(k);
+      var j=this.ks[i].indexOf(k);
       if (!(j<0)) {
-        return this.vals[i][j]
+        return this.vs[i][j]
       }
     }
   }
+  function flatten(a) {
+    for(var i=0,r=[]; i<a.length; i++)
+      for(var j=0,b=a[i]; j<b.length; j++)
+        r.push(b[j]);
+    return r;
+  }
+  Dict.prototype.keys=function() { return flatten(this.ks); }
+  Dict.prototype.vals=function() { return flatten(this.vs); }
 
   function test() {
     var d=new Dict()
@@ -136,37 +144,121 @@ print=p=console.log;
     assert(d.get(x6)==6)
     assert(d.get(x7)==7)
     assert(d.get(x8)==8)
+    print('keys=',d.keys())
+    print('vals=',d.vals())
+    assert(d.keys()[7]==x7)
+    assert(d.vals()[7]==7)
   }
   test()
 }
 {
-  function save(x, links, linkix) {
-    if (!linkix) {
-      linkix=new Dict()
-      var k; for(k in links) { v=links[k]; linkix.set(v,k); }
-    }
-    var id=0
-    var mid=0
-    function dfs(y,seen,many,refs) {
-      if (!seen.has(y)) {
-        var nuy;
-        seen.set(y,nuy=this.nu(y))
-        for(x in this.children(y)) {
-          nuy[x]=dfs(y[x],seen,many)
-        }
-        var r=id++
-        seen.set(y,r)
-        return nuy
-      }
-      var r=mid++
-      many.set(y,r)
-      return {'@': refs.get(y)}
-    }
-    seen=new Dict()
-    many=new Dict()
-    return dfs(x,seen,many,seen)
-    return dfs(x,seen,many,many)
+  function Dict() {
+    this.ks=[]
+    this.vs=[]
   }
+
+  Dict.prototype.set=function(k,v) {
+    var j=this.ks.indexOf(k);
+    if (!(j<0)) {
+      this.ks[j]=v
+    } else {
+      this.ks.push(k)
+      this.vs.push(v)
+    }
+  }
+  Dict.prototype.has=function(k) {
+    return !(this.ks.indexOf(k)<0)
+  }
+  Dict.prototype.get=function(k) {
+    var j=this.ks.indexOf(k)
+    if (!(j<0)) return this.vs[j]
+  }
+  Dict.prototype.keys=function() { return this.ks; }
+  Dict.prototype.vals=function() { return this.vs; }
+
+  function test() {
+    var d=new Dict()
+    var x0=0,x1=2,x2='a2',x3=[],x4=[],x5={a:'a'},x6={a:'b'},x7={a:x7},x8={a:x6}
+    var assert= console.assert;
+    d.set(x0,0)
+    assert(d.has(x0))
+    assert(!d.has(x1))
+    d.set(x1,1)
+    d.set(x2,2)
+    assert(!d.has(x3))
+    d.set(x3,3)
+    assert(d.has(x3))
+    assert(!d.has(x4))
+    d.set(x4,4)
+    d.set(x5,5)
+    d.set(x6,6)
+    d.set(x7,7)
+    d.set(x8,8)
+    assert(d.get(x0)==0)
+    assert(d.get(x1)==1)
+    assert(d.get(x2)==2)
+    assert(d.get(x3)==3)
+    assert(d.get(x4)==4)
+    assert(d.get(x5)==5)
+    assert(d.get(x6)==6)
+    assert(d.get(x7)==7)
+    assert(d.get(x8)==8)
+    assert(d.keys()[7]==x7)
+    assert(d.vals()[7]==7)
+  }
+  test()
+}
+{
+  function save(x, links) {
+    var id=0
+    function dfs(y,fwd,refs,links) {
+      if (fwd.has(y)) {
+        var nuy=fwd.get(y)
+        return {'@': refs.get(nuy)}
+      }
+      var nuy=this.nu(y)
+      fwd.set(y,nuy)
+      refs.set(nuy,id)
+      links[id++]=nuy
+      for(var x in this.children(y)) {
+        nuy[x]=dfs(y[x],fwd,refs,links)
+      }
+      return {'@': refs.get(nuy)}
+    }
+    var fwd=new Dict()
+    var refs=new Dict()
+    id=links.length
+    return dfs(x,fwd,refs,links)
+  }
+  function restore(x, links, nulinks) {
+    function dfs(y, links, nulinks, ref) {
+      if (y==undefined) return y;
+      var ref=y['@']
+      if (ref==undefined) {
+        var nuy=this.nu(y)
+        if(ref!=undefined) nulinks[ref]=nuy
+        for(var x in this.children(y)) {
+          nuy[x]=dfs(y[x], links, nulinks)
+        }
+        return this.rebuild(nuy)
+      } else {
+        var ry=nulinks[ref]
+        if (ry==undefined) {
+          var y=links[ref]
+          ry=nulinks[ref]=this.nu(y)
+          for(var x in this.children(y)) {
+            ry[x]=dfs(y[x], links, nulinks)
+          }
+        }
+        return ry;
+      }
+    }
+    var nulinks=nulinks || []
+    return dfs(x, links, nulinks)
+  }
+
+  JAHson.save=save
+  JAHson.restore=restore
 }
 
 
@@ -175,20 +267,20 @@ print=p=console.log;
   
 
 print=p=console.log;
-o1={a:[1,2,3], b:'12xx', c: {ref:'b'}}
+o1={a:[1,2,3], b:'12xx', c: {ref:'b'}, d:'12xx'}
 print()
-print('o=',o1)
+print('o1=',o1)
 print()
-var linkix={}, links=[]
-print('save=',s1=JAHson.save(o1,linkix,links))
+var links=[]
+print('save=s1=',s1=JAHson.save(o1,links))
 print('links=',links)
 var o2=[1,2]
 o2[1]=o2
-print(o2)
-print('save=',s2=JAHson.save(o2,linkix,links))
+print('o2=',o2)
+print('save=s2=',s2=JAHson.save(o2,links))
 print('links=',links)
 print()
-print('restore=',JAHson.restore(s1,links))
-print('restore=',JAHson.restore(s2,links))
+print('restore(s1)=',JAHson.restore(s1,links))
+print('restore(s2)=',JAHson.restore(s2,links))
 print('restore=',JAHson.restore([s1, {'a':2, 'ref': s2}],links))
 
