@@ -67,9 +67,9 @@ print=p=console.log;
     }
     return dfs(root,links);
   }
-      
+
   JAHson={
-    save:save, restore:restore, children:children, 
+    save:save, restore:restore, children:children,
     nu:nu, atom:atom, isarray:isarray
   }
 }
@@ -264,7 +264,7 @@ print=p=console.log;
 
 
 
-  
+
 
 print=p=console.log;
 o1={a:[1,2,3], b:'12xx', c: {ref:'b'}, d:'12xx'}
